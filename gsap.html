@@ -1,0 +1,121 @@
+<html>
+<head>
+	<script src="vendor/gsap/TweenMax.js"></script>	
+	<script src="vendor/gsap/TimelineLite.js"></script>	
+	<script src="vendor/gsap/utils/SplitText.js"></script>	
+</head>
+<body>
+	<div id="text" class="text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+	</div>
+	<br />
+	<br />
+	<div id="click">Click</div>
+
+	<script type="text/javascript">
+		let text = document.getElementById("text")
+		let tl = new TimelineLite({paused: true})
+		let split = new SplitText(text)
+		let animation = {
+			autoAlpha: 0,
+			x: 70,
+			ease: Ease.easeOut
+		}
+		let labels = ["uno", "dos", "tres", "cuatro"]
+		let labelIdx = 0
+
+
+		let click = document.getElementById("click")
+		click.addEventListener("click", () => {
+			console.log("clicked")
+			labelIdx++
+			tl.play(labels[labelIdx % 4])
+		})
+
+
+
+			/*
+				lineas - primer for...of
+					linea 0
+						palabras - segundo for...of
+							palabra 0
+								staggerFrom children (letras)
+								tweenmax to nada por 1 segundo
+							palabra 1
+								...
+							palabra 2
+								...
+							palabra n
+								...
+					linea 1
+						...
+					linea 2
+						...
+                     */
+
+			/*
+				timeline
+				[
+					label1: referencia
+					animacion1: staggerFrom letras de la palabra 0,
+					animacion2: staggerFrom letras de la palabra 1,
+					label2: referencia
+					animacion50: staggerFrom letras de la palabra 49,
+					animacion51: tween de click a 300
+					pausa con callback
+					animacion 52: tween de algo
+					...
+				]
+
+				Cada una de las animaciones acá puede ser un to, from, stagger
+
+				delay() agrega un delay PREVIO a comenzar el timeline.
+             */
+
+			/*
+				stagger(To/From): recibe un array de elementos, los anima de forma escalonada uno atrás del otro.
+						 especifica duración de CADA animación + delay ENTRE elementos.
+						 Duración = (duración de animación de elemento * cantidad de elementos) + (delay entre elementos * (cantidad de elementos - 1))
+						 ej: staggerFrom(elementos, duracionAnimacionElemento, animaciones/vars, delayEntreElementos)
+
+				to: anima desde el valor actual HACIA el valor especificado
+				from: anima DESDE el valor especificado hacia el original
+          	*/
+
+		function animateWordsAndChars() {
+	        for (const line of split.lines) {
+	            for (var word of line.children) {
+	            	tl.add(TweenMax.staggerFrom(word.children, 0.1, animation, 0.05)) // stagger de las letras de la palabra
+					tl.add(TweenMax.to(word, 0.1, {})) // delay post animación de la palabra, previo a arrancar la siguiente
+	           	}	
+	       	}
+	       	tl.add(TweenMax.to(click, 1, {x: 300})) // animación del click al finalizar todas las anteriores
+	   	}
+
+	   	function animateWithLabels() {
+	   		tl.addLabel("uno")
+	   		tl.add(TweenMax.to(click, 1, {x: 100}))
+	   		tl.addLabel("dos")
+	   		tl.add(TweenMax.to(click, 1, {y: 100}))
+	   		tl.addLabel("tres")
+	   		tl.add(TweenMax.to(click, 1, {x: 0}))
+	   		tl.addLabel("cuatro")
+	   		tl.add(TweenMax.to(click, 1, {y: 0}))
+
+	   		tl.addPause("tres", pauseCalled)
+	   	}
+
+	   	function pauseCalled() {
+	   		console.log("se pauso")
+	   		setTimeout(() => {
+	   			console.log("resume")
+	   			tl.resume()
+	   		}, 2000)
+	   	}
+
+		// animateWordsAndChars()
+		animateWithLabels()
+		console.log(tl)
+
+		</script>
+	</body>
+	</html>
